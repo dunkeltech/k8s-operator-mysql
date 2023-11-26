@@ -1,0 +1,26 @@
+---
+apiVersion: dunkel.tech/v1
+kind: MySQLOperators
+metadata:
+  name: test1
+spec:
+  mysql_version: latest
+
+---
+apiVersion: dunkel.tech/v1
+kind: MySQLDatabases
+metadata:
+  name: test1
+spec:
+  name: test1
+  operator: test1
+
+---
+apiVersion: dunkel.tech/v1
+kind: MySQLUsers
+metadata:
+  name: test1
+spec:
+  operator: test1
+  username: test1
+  database: test1

@@ -1,0 +1,3 @@
+kopf
+kubernetes
+mysql-connector-python

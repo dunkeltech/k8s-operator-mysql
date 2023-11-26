@@ -1,0 +1,89 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: mysqloperators.dunkel.tech
+spec:
+  scope: Namespaced
+  group: dunkel.tech
+  names:
+    kind: MySQLOperators
+    plural: mysqloperators
+    singular: mysqloperator
+    shortNames:
+      - myops
+      - myop
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: mysqldatabases.dunkel.tech
+spec:
+  scope: Namespaced
+  group: dunkel.tech
+  names:
+    kind: MySQLDatabases
+    plural: mysqldatabases
+    singular: mysqldatabase
+    shortNames:
+      - mydbs
+      - mydb
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: mysqlusers.dunkel.tech
+spec:
+  scope: Namespaced
+  group: dunkel.tech
+  names:
+    kind: MySQLUsers
+    plural: mysqlusers
+    singular: mysqluser
+    shortNames:
+      - myusers
+      - myuser
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
