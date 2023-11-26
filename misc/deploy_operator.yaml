@@ -1,0 +1,111 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: "default"
+  name: mysql-operator-account
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mysql-operator-role-cluster
+rules:
+  # Framework: knowing which other operators are running (i.e. peering).
+  - apiGroups: [kopf.dev]
+    resources: [clusterkopfpeerings]
+    verbs: [list, watch, patch, get]
+
+  # Framework: runtime observation of namespaces & CRDs (addition/deletion).
+  - apiGroups: [apiextensions.k8s.io]
+    resources: [customresourcedefinitions]
+    verbs: [list, watch]
+  - apiGroups: [""]
+    resources: [namespaces]
+    verbs: [list, watch]
+
+  # Framework: admission webhook configuration management.
+  - apiGroups: [admissionregistration.k8s.io/v1, admissionregistration.k8s.io/v1beta1]
+    resources: [validatingwebhookconfigurations, mutatingwebhookconfigurations]
+    verbs: [create, patch]
+
+  # Application: read-only access for watching cluster-wide.
+  - apiGroups: [dunkel.tech]
+    resources: [mysqloperators, mysqldatabases, mysqlusers]
+    verbs: [list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: "default"
+  name: mysql-operator-role-namespaced
+rules:
+
+  # Framework: knowing which other operators are running (i.e. peering).
+  - apiGroups: [kopf.dev]
+    resources: [kopfpeerings]
+    verbs: [list, watch, patch, get]
+
+  # Framework: posting the events about the handlers progress/errors.
+  - apiGroups: [""]
+    resources: [events]
+    verbs: [create]
+
+  # Application: watching & handling for the custom resource we declare.
+  - apiGroups: [dunkel.tech]
+    resources: [mysqlusers, mysqldatabases, mysqloperators]
+    verbs: [list, watch, patch]
+
+  # Application: other resources it produces and manipulates.
+  - apiGroups: [batch, extensions, apps]
+    resources: [jobs, deployments]
+    verbs: [create, get, list, watch]
+  - apiGroups: [""]
+    resources: [pods, persistentvolumeclaims, services, configmaps, secrets]
+    verbs: [create, delete, get, patch, update, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: mysql-operator-rolebinding-cluster
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: mysql-operator-role-cluster
+subjects:
+  - kind: ServiceAccount
+    name: mysql-operator-account
+    namespace: "default"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: "default"
+  name: mysql-operator-rolebinding-namespaced
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mysql-operator-role-namespaced
+subjects:
+  - kind: ServiceAccount
+    name: mysql-operator-account
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-operator
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      application: mysql-operator
+  template:
+    metadata:
+      labels:
+        application: mysql-operator
+    spec:
+      serviceAccountName: mysql-operator-account
+      containers:
+      - name: mysql-operator
+        image: ghcr.io/dunkeltech/k8s-operator-mysql:1.0.0
